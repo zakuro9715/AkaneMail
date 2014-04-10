@@ -6,21 +6,28 @@ using System.IO;
 
 namespace AkaneMail
 {
-  public class MboxWriter : IMailBoxWriter
-  {
+  public class MboxWriter : MailBoxWriter
+  {    /// <summary>
+    /// 指定された MailBox と Stream から MboxWriter クラスの新しいインスタンスを初期化します。
+    /// </summary>
+    /// <param name="mailBox">書き込む MailBox</param>
+    /// <param name="stream">書き込まれる Stream</param>
+    public MboxWriter(MailBox mailBox, Stream stream) : base(mailBox, stream) { }
+    /// <summary>
+    /// 指定された MailBox と filePath から MboxWriter クラスの新しいインスタンスを初期化します。
+    /// </summary>
+    /// <param name="mailBox">書き込む MailBox</param>
+    /// <param name="filePath">書き込まれるファイルのパス</param>
+    public MboxWriter(MailBox mailBox, string filePath) : base(mailBox, filePath) { }
 
-    public void Write(MailBox mailBox, Stream stream)
+    /// <summary>
+    /// MailBox を mbox 形式で書き込みます。
+    /// </summary>
+    public override void Write()
     {
-      if (mailBox == null)
-        throw new ArgumentNullException("mailBox が null です");
-      if (stream == null)
-        throw new ArgumentNullException("stream が null です");
-      if (!stream.CanWrite)
-        throw new ArgumentException("書き込みが許可されていない stream です");
-
-      using (var writer = new StreamWriter(stream))
+      using (var writer = new StreamWriter(Stream))
       {
-        foreach (var mail in mailBox.Receive)
+        foreach (var mail in MailBox.Receive)
           writer.WriteLine(FormatedMail(mail));
       }
     }
@@ -29,12 +36,12 @@ namespace AkaneMail
     {
       var sb = new StringBuilder();
       sb.Append(BuildFromLine(mail));
-      using(var reader = new StringReader(BuildFromLine(mail) + mail.header + mail.body))
+      using (var reader = new StringReader(BuildFromLine(mail) + mail.header + mail.body))
       {
         string s;
-        while((s = reader.ReadLine()) != null)
-        sb.Append(FromQuorte(s) + Environment.NewLine);
-       } 
+        while ((s = reader.ReadLine()) != null)
+          sb.Append(FromQuorte(s) + Environment.NewLine);
+      }
 
       // 末尾に空行を入れて返す
       return sb.ToString() + Environment.NewLine;
